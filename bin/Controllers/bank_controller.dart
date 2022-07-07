@@ -1,4 +1,5 @@
 import '../Models/acount.dart';
+import '../Exception/bank_controller_exception.dart';
 
 class BankController {
   final Map<String, Account> _database = {};
@@ -7,24 +8,30 @@ class BankController {
     _database[id] = account;
   }
 
-  bool MakeTransfer(
+  bool makeTransfer(
       {required String idSender,
       required String idReceiver,
       required double amount}) {
     if (!verifyId(idSender)) {
-      return false;
+      throw SenderIdInvalidException(idSender: idSender);
     }
     if (!verifyId(idReceiver)) {
-      return false;
+      throw ReceiverIdInvalidException(idReceiver: idReceiver);
     }
     Account accountSender = _database[idSender]!;
     Account accountReceiver = _database[idReceiver]!;
 
     if (!accountSender.isAuthenticated) {
-      return false;
+      throw SenderNotAuthenticatedException(idSender: idSender);
+    }
+    if (!accountReceiver.isAuthenticated) {
+      throw ReceiverNotAuthenticatedException(idReceiver: idReceiver);
     }
     if (accountSender.balance < amount) {
-      return false;
+      throw SenderBalanceLowerthanAmountException(
+          idSender: idSender,
+          senderBalance: accountSender.balance,
+          amount: amount);
     }
 
     accountSender.balance -= amount;
